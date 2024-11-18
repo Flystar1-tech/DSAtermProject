@@ -1,0 +1,55 @@
+class TicketingSystem:
+    def __init__(self):
+        self.vip_queue = []
+        self.regular_queue = []
+
+    def register_user(self, name, ticket_type):
+        if ticket_type.lower() == "vip":
+            self.vip_queue.append(name)
+            print(f"{name} added to the VIP queue.")
+        elif ticket_type.lower() == "regular":
+            self.regular_queue.append(name)
+            print(f"{name} added to the Regular queue.")
+        else:
+            print("Invalid ticket type. Please choose 'VIP' or 'Regular'.")
+
+    def process_ticket(self):
+        if self.vip_queue:
+            print(f"Processing VIP ticket for {self.vip_queue.pop(0)}.")
+        elif self.regular_queue:
+            print(f"Processing Regular ticket for {self.regular_queue.pop(0)}.")
+        else:
+            print("No tickets to process.")
+
+    def show_status(self):
+        print(f"VIP Queue: {self.vip_queue}")
+        print(f"Regular Queue: {self.regular_queue}")
+
+
+def ticketing_system_menu():
+    system = TicketingSystem()
+
+    while True:
+        print("\n1. Register User")
+        print("2. Process Ticket")
+        print("3. Show Status")
+        print("4. Exit")
+        choice = input("Choose an option: ")
+
+        if choice == "1":
+            name = input("Enter name: ")
+            ticket_type = input("Enter ticket type (VIP/Regular): ")
+            system.register_user(name, ticket_type)
+        elif choice == "2":
+            system.process_ticket()
+        elif choice == "3":
+            system.show_status()
+        elif choice == "4":
+            print("Exiting...")
+            break
+        else:
+            print("Invalid option. Try again.")
+
+
+if __name__ == "__main__":
+    ticketing_system_menu()
