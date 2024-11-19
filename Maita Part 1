@@ -1,29 +1,42 @@
+from queue import Queue
+
+
 class TicketingSystem:
     def __init__(self):
-        self.vip_queue = []
-        self.regular_queue = []
+        self.vip_queue = Queue()
+        self.regular_queue = Queue()
 
     def register_user(self, name, ticket_type):
+        user_info = {"name": name, "ticket_type": ticket_type.lower()}
         if ticket_type.lower() == "vip":
-            self.vip_queue.append(name)
+            self.vip_queue.put(user_info)
             print(f"{name} added to the VIP queue.")
         elif ticket_type.lower() == "regular":
-            self.regular_queue.append(name)
+            self.regular_queue.put(user_info)
             print(f"{name} added to the Regular queue.")
         else:
             print("Invalid ticket type. Please choose 'VIP' or 'Regular'.")
 
     def process_ticket(self):
-        if self.vip_queue:
-            print(f"Processing VIP ticket for {self.vip_queue.pop(0)}.")
-        elif self.regular_queue:
-            print(f"Processing Regular ticket for {self.regular_queue.pop(0)}.")
+        if not self.vip_queue.empty():
+            user = self.vip_queue.get()
+            print(f"Processing VIP ticket for {user['name']}.")
+        elif not self.regular_queue.empty():
+            user = self.regular_queue.get()
+            print(f"Processing Regular ticket for {user['name']}.")
         else:
             print("No tickets to process.")
 
     def show_status(self):
-        print(f"VIP Queue: {self.vip_queue}")
-        print(f"Regular Queue: {self.regular_queue}")
+        print("\nVIP Queue:")
+        vip_list = list(self.vip_queue.queue)  # Converts the queue to a list for display
+        for user in vip_list:
+            print(f"- {user['name']} ({user['ticket_type'].capitalize()})")
+
+        print("Regular Queue:")
+        regular_list = list(self.regular_queue.queue)
+        for user in regular_list:
+            print(f"- {user['name']} ({user['ticket_type'].capitalize()})")
 
 
 def ticketing_system_menu():
