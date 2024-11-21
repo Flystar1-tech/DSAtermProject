@@ -1,4 +1,6 @@
 from queue import Queue
+import csv
+from datetime import datetime
 
 
 class TicketingSystem:
@@ -6,16 +8,26 @@ class TicketingSystem:
         self.vip_queue = Queue()
         self.regular_queue = Queue()
 
-    def register_user(self, name, ticket_type):
-        user_info = {"name": name, "ticket_type": ticket_type.lower()}
-        if ticket_type.lower() == "vip":
+def register_user(self, name, ticket_type):
+    user_info = {"name": name, "ticket_type": ticket_type.lower()}
+    if ticket_type.lower() == "vip":
+        if self.sold_vip_tickets + self.vip_queue.qsize() < self.total_vip_tickets:
             self.vip_queue.put(user_info)
             print(f"{name} added to the VIP queue.")
-        elif ticket_type.lower() == "regular":
+            self.log_transaction(name, "VIP", "Registered")
+        else:
+            print("VIP tickets are sold out. Registration not allowed.")
+            self.log_transaction(name, "VIP", "Registration Failed - Sold Out")
+    elif ticket_type.lower() == "regular":
+        if self.sold_regular_tickets + self.regular_queue.qsize() < self.total_regular_tickets:
             self.regular_queue.put(user_info)
             print(f"{name} added to the Regular queue.")
+            self.log_transaction(name, "Regular", "Registered")
         else:
-            print("Invalid ticket type. Please choose 'VIP' or 'Regular'.")
+            print("Regular tickets are sold out. Registration not allowed.")
+            self.log_transaction(name, "Regular", "Registration Failed - Sold Out")
+    else:
+        print("Invalid ticket type. Please choose 'VIP' or 'Regular'.")
 
     def process_ticket(self):
         if not self.vip_queue.empty():
@@ -38,31 +50,144 @@ class TicketingSystem:
         for user in regular_list:
             print(f"- {user['name']} ({user['ticket_type'].capitalize()})")
 
-
 def ticketing_system_menu():
-    system = TicketingSystem()
+    system = TicketingExtensions()  # Use the extended class
 
     while True:
-        print("\n1. Register User")
-        print("2. Process Ticket")
-        print("3. Show Status")
-        print("4. Exit")
-        choice = input("Choose an option: ")
+        try:
+            print("\n1. Register User")
+            print("2. Process Ticket")
+            print("3. Show Status")
+            print("4. Cancel Ticket")
+            print("5. View Sales Summary")
+            print("6. Exit")
+            choice = input("Choose an option: ")
 
-        if choice == "1":
-            name = input("Enter name: ")
-            ticket_type = input("Enter ticket type (VIP/Regular): ")
-            system.register_user(name, ticket_type)
-        elif choice == "2":
-            system.process_ticket()
-        elif choice == "3":
-            system.show_status()
-        elif choice == "4":
-            print("Exiting...")
-            break
+            if choice == "1":
+                name = input("Enter name: ").strip()
+                if not name:  # Check for empty name
+                    print("Name cannot be empty. Try again.")
+                    continue
+                ticket_type = input("Enter ticket type (VIP/Regular): ").strip().lower()
+                if ticket_type not in ["vip", "regular"]:
+                    print("Invalid ticket type. Please choose 'VIP' or 'Regular'.")
+                    continue
+                system.register_user(name, ticket_type)
+                system.log_transaction(name, ticket_type, "Registered")
+            elif choice == "2":
+                system.process_ticket()
+            elif choice == "3":
+                system.show_status()
+            elif choice == "4":
+                name = input("Enter name to cancel ticket: ").strip()
+                if not name:
+                    print("Name cannot be empty. Try again.")
+                    continue
+                system.cancel_ticket(name)
+            elif choice == "5":
+                system.sales_summary()
+            elif choice == "6":
+                print("Exiting...")
+                break
+            else:
+                print("Invalid option. Please try again.")
+        except Exception as e:
+            print(f"An unexpected error occurred: {e}")
+
+
+
+class TicketingExtensions(TicketingSystem):  # Inherits from Maita's TicketingSystem
+    def __init__(self):
+        super().__init__()
+        self.total_vip_tickets = 10  # Total available VIP tickets
+        self.total_regular_tickets = 20  # Total available Regular tickets
+        self.sold_vip_tickets = 0  # Tracks number of sold VIP tickets
+        self.sold_regular_tickets = 0  # Tracks number of sold Regular tickets
+        self.log_file = "transaction_log.csv"
+
+        # Create the log file with headers if it doesn't exist
+        with open(self.log_file, mode="w", newline="") as file:
+            writer = csv.writer(file)
+            writer.writerow(["Name", "Ticket Type", "Status", "Time"])
+    def log_transaction(self, name, ticket_type, status):
+        """
+        Logs a transaction to the CSV file.
+
+        Args:
+            name (str): The user's name.
+            ticket_type (str): The ticket type ('VIP' or 'Regular').
+            status (str): Status of the transaction (e.g., 'Registered', 'Canceled').
+        """
+        with open(self.log_file, mode="a", newline="") as file:
+            writer = csv.writer(file)
+            writer.writerow([name, ticket_type.capitalize(), status, datetime.now().strftime("%Y-%m-%d %H:%M:%S")])
+    def process_ticket(self):
+        """
+        Processes the next ticket in the VIP or Regular queue and updates the sold count.
+        """
+        if not self.vip_queue.empty():
+            if self.sold_vip_tickets < self.total_vip_tickets:
+                user = self.vip_queue.get()
+                self.sold_vip_tickets += 1  # Increment sold tickets
+                print(f"Processing VIP ticket for {user['name']}.")
+                self.log_transaction(user['name'], "VIP", "Successful")
+            else:
+                print("No VIP tickets available.")
+                self.log_transaction("N/A", "VIP", "Sold Out")
+        elif not self.regular_queue.empty():
+            if self.sold_regular_tickets < self.total_regular_tickets:
+                user = self.regular_queue.get()
+                self.sold_regular_tickets += 1  # Increment sold tickets
+                print(f"Processing Regular ticket for {user['name']}.")
+                self.log_transaction(user['name'], "Regular", "Successful")
+            else:
+                print("No Regular tickets available.")
+                self.log_transaction("N/A", "Regular", "Sold Out")
         else:
-            print("Invalid option. Try again.")
+            print("No tickets to process.")
+            self.log_transaction("N/A", "N/A", "No Tickets Available")
+def cancel_ticket(self, name):
+    found = False
 
+    # Cancel from VIP queue
+    temp_queue = Queue()
+    while not self.vip_queue.empty():
+        user = self.vip_queue.get()
+        if user["name"].lower() == name.lower():
+            print(f"{name}'s VIP ticket has been canceled.")
+            self.log_transaction(name, "VIP", "Canceled")
+            found = True
+        else:
+            temp_queue.put(user)
+    self.vip_queue = temp_queue
+
+    # Cancel from Regular queue if not found in VIP
+    if not found:
+        temp_queue = Queue()
+        while not self.regular_queue.empty():
+            user = self.regular_queue.get()
+            if user["name"].lower() == name.lower():
+                print(f"{name}'s Regular ticket has been canceled.")
+                self.log_transaction(name, "Regular", "Canceled")
+                found = True
+            else:
+                temp_queue.put(user)
+        self.regular_queue = temp_queue
+
+    if not found:
+        print(f"No ticket found for {name}.")
+        self.log_transaction(name, "N/A", "Cancel Failed (Not Found)")
+
+    def sales_summary(self):
+        """
+        Displays the number of tickets sold and the remaining availability for each ticket type.
+        """
+        remaining_vip = max(0, self.total_vip_tickets - self.sold_vip_tickets)
+        remaining_regular = max(0, self.total_regular_tickets - self.sold_regular_tickets)
+
+        print("\nTicket Sales Summary:")
+        print(f"VIP Tickets Sold: {self.sold_vip_tickets}, Remaining: {remaining_vip}")
+        print(f"Regular Tickets Sold: {self.sold_regular_tickets}, Remaining: {remaining_regular}")
 
 if __name__ == "__main__":
     ticketing_system_menu()
