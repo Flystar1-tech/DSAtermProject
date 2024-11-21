@@ -1,8 +1,3 @@
-import queue
-from datetime import datetime
-import csv
-
-
 # Team Member 2: Ticket Processing, Availability Tracking & Real-Time Feedback
 
 def process_tickets(self, number_tickets):
