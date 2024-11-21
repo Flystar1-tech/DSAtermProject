@@ -1,6 +1,19 @@
 import queue
 from datetime import datetime
 import csv
+import requests
+
+# Use the raw URL of the Markdown file
+url = "https://raw.githubusercontent.com/Flystar1-tech/ReadMe/refs/heads/main/README.md"
+
+try:
+    response = requests.get(url)
+    response.raise_for_status()  # Raise an error for bad status codes
+    md_content = response.text
+    print("Markdown content retrieved successfully:")
+    print(md_content)
+except requests.exceptions.RequestException as e:
+    print(f"Failed to fetch the file: {e}")
 
 
 class TicketSalesSystem:
