@@ -2,7 +2,6 @@ import queue
 from datetime import datetime
 
 
-
 class TicketSalesSystem:
     def __init__(self):
         # Data structures

@@ -1,5 +1,9 @@
 import csv
+import queue
+from datetime import datetime
 # Team Member 3: Transaction Logging, Interface & Additional Tasks
+
+
 def initialize_log(self):
     with open(self.transaction_log_file, "w", newline="") as file:
         writer = csv.writer(file)
